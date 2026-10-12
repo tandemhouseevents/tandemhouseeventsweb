@@ -18,11 +18,29 @@
   var form = document.getElementById('contact-form');
   var status = document.getElementById('form-status');
   var submitButton = form ? form.querySelector('button[type="submit"]') : null;
+  var phoneField = document.getElementById('field-phone');
 
   function setStatus(message, isError) {
     if (!status) return;
     status.textContent = message;
     status.style.color = isError ? 'hsl(0 84% 65%)' : 'hsl(var(--primary))';
+  }
+
+  if (phoneField) {
+    phoneField.addEventListener('input', function () {
+      var hasInvalidChars = /[^0-9+\-\s()]/.test(phoneField.value);
+      var digitCount = phoneField.value.replace(/[^0-9]/g, '').length;
+
+      if (phoneField.value.trim() === '') {
+        phoneField.setCustomValidity('');
+      } else if (hasInvalidChars) {
+        phoneField.setCustomValidity('Phone number can only contain digits, spaces, +, -, and parentheses.');
+      } else if (digitCount < 10 || digitCount > 15) {
+        phoneField.setCustomValidity('Enter a valid phone number (10–15 digits).');
+      } else {
+        phoneField.setCustomValidity('');
+      }
+    });
   }
 
   if (form) {
