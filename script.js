@@ -16,36 +16,46 @@
   }
 
   var form = document.getElementById('contact-form');
+  var status = document.getElementById('form-status');
+  var submitButton = form ? form.querySelector('button[type="submit"]') : null;
+
+  function setStatus(message, isError) {
+    if (!status) return;
+    status.textContent = message;
+    status.style.color = isError ? 'hsl(0 84% 65%)' : 'hsl(var(--primary))';
+  }
+
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
+      setStatus('Sending...', false);
+      if (submitButton) submitButton.disabled = true;
 
-      var name = document.getElementById('field-name').value.trim();
-      var company = document.getElementById('field-company').value.trim();
-      var email = document.getElementById('field-email').value.trim();
-      var phone = document.getElementById('field-phone').value.trim();
-      var interestSelect = document.getElementById('field-interest');
-      var interest = interestSelect.options[interestSelect.selectedIndex].text;
-      var message = document.getElementById('field-message').value.trim();
-
-      if (!name || !email) {
-        alert('Please fill in at least your name and email.');
-        return;
-      }
-
-      var subject = encodeURIComponent('New enquiry from tandemhouse.in: ' + name);
-      var bodyLines = [
-        'Name: ' + name,
-        'Company: ' + (company || '-'),
-        'Email: ' + email,
-        'Phone: ' + (phone || '-'),
-        "Interested in: " + (interest !== 'Select an option' ? interest : '-'),
-        '',
-        'Message:',
-        message || '-'
-      ];
-      var body = encodeURIComponent(bodyLines.join('\n'));
-      window.location.href = 'mailto:hello@tandemhouse.com?subject=' + subject + '&body=' + body;
+      fetch(form.action, {
+        method: 'POST',
+        body: new FormData(form),
+        headers: { Accept: 'application/json' }
+      })
+        .then(function (response) {
+          if (response.ok) {
+            form.reset();
+            setStatus("Thanks — we've got your message and will be in touch soon.", false);
+          } else {
+            return response.json().then(function (data) {
+              var errorMessage =
+                data && data.errors
+                  ? data.errors.map(function (err) { return err.message; }).join(', ')
+                  : 'Something went wrong. Please try again or email us directly.';
+              throw new Error(errorMessage);
+            });
+          }
+        })
+        .catch(function (err) {
+          setStatus(err.message || 'Something went wrong. Please try again or email us directly.', true);
+        })
+        .finally(function () {
+          if (submitButton) submitButton.disabled = false;
+        });
     });
   }
 })();
