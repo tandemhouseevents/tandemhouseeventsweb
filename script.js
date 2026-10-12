@@ -19,12 +19,32 @@
   if (form) {
     form.addEventListener('submit', function (e) {
       e.preventDefault();
-      var name = form.querySelector('input[type="text"]');
-      var email = form.querySelector('input[type="email"]');
-      var subject = encodeURIComponent('New enquiry from tandemhouse.in');
-      var body = encodeURIComponent(
-        'Name: ' + (name ? name.value : '') + '\nEmail: ' + (email ? email.value : '')
-      );
+
+      var name = document.getElementById('field-name').value.trim();
+      var company = document.getElementById('field-company').value.trim();
+      var email = document.getElementById('field-email').value.trim();
+      var phone = document.getElementById('field-phone').value.trim();
+      var interestSelect = document.getElementById('field-interest');
+      var interest = interestSelect.options[interestSelect.selectedIndex].text;
+      var message = document.getElementById('field-message').value.trim();
+
+      if (!name || !email) {
+        alert('Please fill in at least your name and email.');
+        return;
+      }
+
+      var subject = encodeURIComponent('New enquiry from tandemhouse.in: ' + name);
+      var bodyLines = [
+        'Name: ' + name,
+        'Company: ' + (company || '-'),
+        'Email: ' + email,
+        'Phone: ' + (phone || '-'),
+        "Interested in: " + (interest !== 'Select an option' ? interest : '-'),
+        '',
+        'Message:',
+        message || '-'
+      ];
+      var body = encodeURIComponent(bodyLines.join('\n'));
       window.location.href = 'mailto:hello@tandemhouse.com?subject=' + subject + '&body=' + body;
     });
   }
